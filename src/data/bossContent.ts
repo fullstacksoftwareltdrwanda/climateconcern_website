@@ -110,6 +110,7 @@ export const teamMembers: TeamMember[] = [
     name: 'Omer ELAWAD',
     role: 'Lead Consultant, Carbon Market',
     initials: 'OE',
+    image: '/images/Omer.jpeg',
     bio: 'Senior carbon market specialist advising on voluntary and compliance market mechanisms, project design documentation, and carbon crediting methodologies.',
     keyAreas: ['Carbon Market Structuring', 'Emission Reduction Methodologies', 'Article 6 Crediting'],
   },
