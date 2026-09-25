@@ -2,6 +2,7 @@ import 'dotenv/config';
 import express from 'express';
 import cors from 'cors';
 import path from 'path';
+import fs from 'fs';
 
 import { verifyMailer } from './lib/mailer';
 
@@ -46,12 +47,16 @@ app.use(cors({
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Serve uploaded files (admin-only in real production; fine for dev)
-app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
+// Ensure uploads directory exists on server
+const UPLOADS_DIR = path.resolve(__dirname, '../uploads');
+if (!fs.existsSync(UPLOADS_DIR)) {
+  fs.mkdirSync(UPLOADS_DIR, { recursive: true });
+}
+app.use('/uploads', express.static(UPLOADS_DIR));
 
 // ─── Health check ────────────────────────────────────────────
 app.get('/api/health', (_req, res) => {
-  res.json({ ok: true, ts: new Date().toISOString() });
+  res.json({ ok: true, version: '2.1.0-email-upload-profile', ts: new Date().toISOString() });
 });
 
 // ─── Routes ──────────────────────────────────────────────────

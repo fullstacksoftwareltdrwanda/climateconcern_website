@@ -1,12 +1,17 @@
 import nodemailer from 'nodemailer';
 
+const mailUser = process.env.MAIL_USERNAME || 'apps@programage.com';
+const mailPass = process.env.MAIL_PASSWORD || 'wmnxdffulyjbptvs';
+const mailHost = process.env.MAIL_HOST || 'smtp.gmail.com';
+const mailPort = Number(process.env.MAIL_PORT || 587);
+
 const transporter = nodemailer.createTransport({
-  host: process.env.MAIL_HOST ?? 'smtp.gmail.com',
-  port: Number(process.env.MAIL_PORT ?? 587),
+  host: mailHost,
+  port: mailPort,
   secure: false, // TLS (STARTTLS) — not SSL
   auth: {
-    user: process.env.MAIL_USERNAME,
-    pass: process.env.MAIL_PASSWORD,
+    user: mailUser,
+    pass: mailPass,
   },
   tls: {
     rejectUnauthorized: false,
@@ -21,14 +26,20 @@ const transporter = nodemailer.createTransport({
  */
 export async function sendMail(to: string, subject: string, html: string): Promise<void> {
   const fromName = process.env.MAIL_FROM_NAME ?? 'Climate Concern';
-  const fromAddress = process.env.MAIL_FROM_ADDRESS ?? 'noreply@climateconcern.rw';
+  const fromAddress = process.env.MAIL_FROM_ADDRESS ?? mailUser;
 
-  await transporter.sendMail({
-    from: `"${fromName}" <${fromAddress}>`,
-    to,
-    subject,
-    html,
-  });
+  try {
+    const info = await transporter.sendMail({
+      from: `"${fromName}" <${fromAddress}>`,
+      to,
+      subject,
+      html,
+    });
+    console.log(`📧 [Mailer] Email sent successfully to: ${to} (Message ID: ${info.messageId})`);
+  } catch (err) {
+    console.error(`❌ [Mailer] Delivery failed to ${to}:`, err);
+    throw err;
+  }
 }
 
 /**
@@ -37,8 +48,9 @@ export async function sendMail(to: string, subject: string, html: string): Promi
 export async function verifyMailer(): Promise<void> {
   try {
     await transporter.verify();
-    console.log('✅ Mailer connected to SMTP server');
+    console.log(`✅ Mailer connected to SMTP server (${mailHost} as ${mailUser})`);
   } catch (err) {
-    console.warn('⚠️  Mailer SMTP verification failed — emails may not send:', err);
+    console.warn('⚠️  Mailer SMTP verification failed — check SMTP credentials:', err);
   }
 }
+

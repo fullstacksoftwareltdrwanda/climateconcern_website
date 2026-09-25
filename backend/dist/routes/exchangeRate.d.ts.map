@@ -1,0 +1,1 @@
+{"version":3,"file":"exchangeRate.d.ts","sourceRoot":"","sources":["../../src/routes/exchangeRate.ts"],"names":[],"mappings":"AAKA,QAAA,MAAM,MAAM,4CAAW,CAAC;AAKxB,UAAU,QAAQ;IAChB,IAAI,EAAE,MAAM,CAAC;IACb,IAAI,EAAE,MAAM,GAAG,QAAQ,CAAC;IACxB,WAAW,EAAE,MAAM,CAAC;CACrB;AAwCD,wBAAsB,sBAAsB,IAAI,OAAO,CAAC,QAAQ,CAAC,CA8ChE;AA4CD,eAAe,MAAM,CAAC"}

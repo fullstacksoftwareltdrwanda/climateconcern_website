@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Edit2, Trash2, X, Award, Upload } from 'lucide-react';
+import { Plus, Edit2, Trash2, X, Award, Upload, Loader2 } from 'lucide-react';
 import { api } from '../../lib/api';
 import { useAdminAuth } from '../AdminAuthContext';
 import { useToast } from '../Toast';
@@ -29,6 +29,7 @@ export const TeamSection: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [modalOpen, setModalOpen] = useState(false);
   const [editingMember, setEditingMember] = useState<TeamMember | null>(null);
+  const [uploadingPhoto, setUploadingPhoto] = useState(false);
 
   const [form, setForm] = useState({
     name: '',
@@ -356,35 +357,48 @@ export const TeamSection: React.FC = () => {
                       )}
                     </div>
                     {/* File upload button */}
-                    <div className="mt-2">
-                      <label className="cursor-pointer inline-flex items-center gap-2 px-3 py-1.5 bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs font-semibold rounded-lg transition-colors">
-                        <Upload className="w-3.5 h-3.5" />
-                        Upload Photo File
+                    <div className="mt-2 flex items-center gap-3">
+                      <label className={`cursor-pointer inline-flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors ${
+                        uploadingPhoto
+                          ? 'bg-emerald-100 text-emerald-800 opacity-70 cursor-not-allowed'
+                          : 'bg-emerald-50 hover:bg-emerald-100 text-[#00652c] border border-emerald-200'
+                      }`}>
+                        {uploadingPhoto ? (
+                          <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                        ) : (
+                          <Upload className="w-3.5 h-3.5" />
+                        )}
+                        <span>{uploadingPhoto ? 'Uploading Photo...' : 'Upload Photo File'}</span>
                         <input
                           type="file"
                           accept="image/*"
+                          disabled={uploadingPhoto}
                           className="hidden"
                           onChange={async (e) => {
                             const file = e.target.files?.[0];
                             if (!file) return;
                             const formData = new FormData();
                             formData.append('image', file);
+                            setUploadingPhoto(true);
                             try {
-                              const res = await fetch('/api/upload/image', {
-                                method: 'POST',
-                                headers: { Authorization: `Bearer ${localStorage.getItem('cc_admin_token')}` },
-                                body: formData,
-                              });
-                              const data = await res.json();
-                              if (data.url) setForm(f => ({ ...f, image: data.url }));
-                              else toast.error('Upload failed');
-                            } catch {
-                              toast.error('Upload failed');
+                              const res = await api.post<{ url: string }>('/upload/image', formData);
+                              if (res?.url) {
+                                setForm((prev) => ({ ...prev, image: res.url }));
+                                toast.success('Photo uploaded successfully!');
+                              } else {
+                                toast.error('Upload failed: No URL returned');
+                              }
+                            } catch (err) {
+                              toast.error(err instanceof Error ? err.message : 'Photo upload failed');
+                            } finally {
+                              setUploadingPhoto(false);
+                              // reset file input value
+                              e.target.value = '';
                             }
                           }}
                         />
                       </label>
-                      <span className="text-[10px] text-gray-400 ml-2">Max 5MB · JPG, PNG, GIF, WebP</span>
+                      <span className="text-[10px] text-gray-400">Max 10MB · JPG, PNG, WebP</span>
                     </div>
                   </div>
                 </div>

@@ -14,6 +14,7 @@ interface AdminAuthContextType {
   loading: boolean;
   login: (token: string, adminUser: AdminUser) => void;
   logout: () => void;
+  updateAdmin: (data: Partial<AdminUser>) => void;
   hasPermission: (section: string, action?: 'view' | 'edit' | 'delete') => boolean;
 }
 
@@ -49,6 +50,10 @@ export const AdminAuthProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     setAdmin(null);
   };
 
+  const updateAdmin = (data: Partial<AdminUser>) => {
+    setAdmin((prev) => (prev ? { ...prev, ...data } : null));
+  };
+
   const hasPermission = (section: string, action: 'view' | 'edit' | 'delete' = 'view'): boolean => {
     if (!admin) return false;
     if (admin.isMainAdmin) return true;
@@ -57,7 +62,7 @@ export const AdminAuthProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   };
 
   return (
-    <AdminAuthContext.Provider value={{ admin, loading, login, logout, hasPermission }}>
+    <AdminAuthContext.Provider value={{ admin, loading, login, logout, updateAdmin, hasPermission }}>
       {children}
     </AdminAuthContext.Provider>
   );

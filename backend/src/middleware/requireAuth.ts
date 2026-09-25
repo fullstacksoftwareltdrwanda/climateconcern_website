@@ -4,6 +4,7 @@ import prisma from '../lib/prisma';
 
 export interface AdminPayload {
   id: string;
+  name: string;
   email: string;
   isMainAdmin: boolean;
   permissions: Record<string, { view: boolean; edit: boolean; delete: boolean }>;
@@ -40,6 +41,7 @@ export async function requireAuth(req: Request, res: Response, next: NextFunctio
 
     req.admin = {
       id: admin.id,
+      name: admin.name,
       email: admin.email,
       isMainAdmin: admin.isMainAdmin,
       permissions: (admin.permissions as Record<string, { view: boolean; edit: boolean; delete: boolean }>) ?? {},
