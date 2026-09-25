@@ -68,9 +68,13 @@ app.use('/api/applications', applicationsRouter);
 app.use('/api/consultant-requests', consultantRequestsRouter);
 app.use('/api/exchange-rate', exchangeRateRouter);
 
-// ─── 404 catch-all ───────────────────────────────────────────
-app.use((_req, res) => {
-  res.status(404).json({ error: 'Not found' });
+// ─── Static frontend (production) ────────────────────────────
+const DIST_DIR = path.join(__dirname, '../../dist');
+app.use(express.static(DIST_DIR));
+
+// ─── SPA catch-all (must be AFTER all /api routes) ───────────
+app.get('*', (_req, res) => {
+  res.sendFile(path.join(DIST_DIR, 'index.html'));
 });
 
 // ─── Start ───────────────────────────────────────────────────
