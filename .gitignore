@@ -30,13 +30,3 @@ backend/.env
 
 # ─── Backend uploads (user-submitted files) ─────────────────
 backend/uploads/
-
-# ─── Backend build artifacts ─────────────────────────────────
-backend/node_modules/
-backend/dist/
-
-# ─── Prisma generated client ─────────────────────────────────
-backend/src/generated/
-
-# ─── One-off migration scripts ───────────────────────────────
-backend/update_team_images.js
