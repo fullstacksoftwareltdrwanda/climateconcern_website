@@ -23,12 +23,22 @@ const app = express();
 const PORT = Number(process.env.PORT ?? 4000);
 
 // ─── Middleware ───────────────────────────────────────────────
+const allowedOrigins = [
+  'http://localhost:5173',
+  'http://localhost:4173',
+  'http://localhost:3025',
+  'http://192.168.1.65:3025',
+  ...(process.env.FRONTEND_URL
+    ? process.env.FRONTEND_URL.split(',').map((u) => u.trim())
+    : []),
+];
 app.use(cors({
-  origin: [
-    process.env.FRONTEND_URL ?? 'http://localhost:5173',
-    'http://localhost:5173',
-    'http://localhost:4173',
-  ],
+  origin: (origin, callback) => {
+    // Allow requests with no origin (mobile apps, curl, Postman)
+    if (!origin) return callback(null, true);
+    if (allowedOrigins.includes(origin)) return callback(null, true);
+    callback(new Error(`CORS: origin ${origin} not allowed`));
+  },
   credentials: true,
 }));
 
