@@ -166,8 +166,29 @@ router.patch('/:id/status', requireAuth, requirePermission('consultant_requests'
 // GET /api/consultant-requests/:id/download — admin only (download ToR file)
 router.get('/:id/download', requireAuth, requirePermission('consultant_requests', 'view'), async (req: Request, res: Response): Promise<void> => {
   const cr = await prisma.consultantRequest.findUnique({ where: { id: req.params.id } });
-  if (!cr || !cr.torFilePath) { res.status(404).json({ error: 'File not found' }); return; }
-  res.download(cr.torFilePath, cr.torFileName ?? 'document');
+  if (!cr || !cr.torFilePath) {
+    res.status(404).json({ error: 'File not found' });
+    return;
+  }
+
+  let filePath = path.resolve(cr.torFilePath);
+  if (!fs.existsSync(filePath)) {
+    const fallback = path.join(uploadDir, path.basename(cr.torFilePath));
+    if (fs.existsSync(fallback)) {
+      filePath = fallback;
+    } else {
+      res.status(404).json({ error: 'File missing on disk' });
+      return;
+    }
+  }
+
+  const isPreview = req.query.preview === '1' || req.query.view === '1';
+  if (isPreview) {
+    res.setHeader('Content-Disposition', `inline; filename="${encodeURIComponent(cr.torFileName || 'document')}"`);
+    res.sendFile(filePath);
+  } else {
+    res.download(filePath, cr.torFileName ?? 'document');
+  }
 });
 
 export default router;

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { CheckCircle2, XCircle, Clock, Search, Mail, Phone, Download, ShieldCheck } from 'lucide-react';
-import { api } from '../../lib/api';
+import { CheckCircle2, XCircle, Clock, Search, Mail, Phone, Download, ShieldCheck, Eye, ExternalLink, X } from 'lucide-react';
+import { api, API_BASE, getAuthToken } from '../../lib/api';
 import { useAdminAuth } from '../AdminAuthContext';
 import { useToast } from '../Toast';
 import { useConfirm } from '../ConfirmDialog';
@@ -30,6 +30,7 @@ export const ApplicationsSection: React.FC = () => {
   const [filterStatus, setFilterStatus] = useState<string>('ALL');
   const [searchTerm, setSearchTerm] = useState('');
   const [updatingId, setUpdatingId] = useState<string | null>(null);
+  const [previewingApp, setPreviewingApp] = useState<Application | null>(null);
 
   const fetchApplications = async () => {
     try {
@@ -73,11 +74,14 @@ export const ApplicationsSection: React.FC = () => {
 
   const handleDownloadProof = async (app: Application) => {
     try {
-      const token = localStorage.getItem('cc_admin_token');
-      const res = await fetch(`http://localhost:4000/api/applications/${app.id}/payment-proof`, {
+      const token = getAuthToken();
+      const res = await fetch(`${API_BASE}/applications/${app.id}/payment-proof`, {
         headers: token ? { Authorization: `Bearer ${token}` } : {},
       });
-      if (!res.ok) throw new Error('Proof file could not be downloaded');
+      if (!res.ok) {
+        const errorJson = await res.json().catch(() => null);
+        throw new Error(errorJson?.error || `File download failed (HTTP ${res.status})`);
+      }
       const blob = await res.blob();
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
@@ -210,14 +214,25 @@ export const ApplicationsSection: React.FC = () => {
                         </div>
                       )}
                       {app.paymentProofPath ? (
-                        <button
-                          type="button"
-                          onClick={() => handleDownloadProof(app)}
-                          className="mt-1.5 inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-[#00652c] font-bold text-[10px] transition-colors cursor-pointer border border-emerald-200"
-                        >
-                          <Download className="w-3 h-3 shrink-0" />
-                          <span className="truncate max-w-[120px]">{app.paymentProofName || 'Download Receipt'}</span>
-                        </button>
+                        <div className="flex items-center gap-1.5 mt-1.5 flex-wrap">
+                          <button
+                            type="button"
+                            onClick={() => setPreviewingApp(app)}
+                            className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-[10px] transition-colors shadow-2xs cursor-pointer"
+                          >
+                            <Eye className="w-3 h-3 shrink-0" />
+                            <span>Preview</span>
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleDownloadProof(app)}
+                            className="inline-flex items-center gap-1 px-2 py-1 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-[#00652c] font-bold text-[10px] transition-colors cursor-pointer border border-emerald-200"
+                            title={app.paymentProofName || 'Download Receipt'}
+                          >
+                            <Download className="w-3 h-3 shrink-0" />
+                            <span className="truncate max-w-[85px]">{app.paymentProofName || 'Download'}</span>
+                          </button>
+                        </div>
                       ) : (
                         <span className="text-[10px] text-gray-400 italic block mt-0.5">No receipt attached</span>
                       )}
@@ -274,6 +289,95 @@ export const ApplicationsSection: React.FC = () => {
           </div>
         )}
       </div>
+
+      {/* ── Payment Proof Preview Modal ── */}
+      {previewingApp && (
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl max-w-3xl w-full p-6 sm:p-8 border border-gray-200 shadow-2xl relative max-h-[90vh] flex flex-col animate-in fade-in zoom-in-95 duration-150">
+            {/* Modal Header */}
+            <div className="flex items-center justify-between pb-4 border-b border-gray-100">
+              <div>
+                <h3 className="font-bold text-lg text-gray-900 flex items-center gap-2">
+                  <ShieldCheck className="w-5 h-5 text-[#00652c]" />
+                  <span>Payment Proof Document</span>
+                </h3>
+                <p className="text-xs text-gray-500 mt-0.5">
+                  Applicant: <strong>{previewingApp.name}</strong> · Tuition: <strong>{previewingApp.amountPaid || '$500 USD / ~675,000 RWF'}</strong>
+                </p>
+              </div>
+              <button
+                onClick={() => setPreviewingApp(null)}
+                className="p-2 rounded-full hover:bg-gray-100 text-gray-400 hover:text-gray-700 transition-colors cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Document Content View */}
+            <div className="flex-1 overflow-auto my-4 bg-gray-50 rounded-2xl p-4 flex items-center justify-center min-h-[320px]">
+              {(() => {
+                const token = getAuthToken() || '';
+                const previewUrl = `${API_BASE}/applications/${previewingApp.id}/payment-proof?token=${token}&preview=1`;
+                const filename = (previewingApp.paymentProofName || '').toLowerCase();
+                const isPdf = filename.endsWith('.pdf');
+
+                if (isPdf) {
+                  return (
+                    <iframe
+                      src={previewUrl}
+                      title="Payment Proof PDF"
+                      className="w-full h-[60vh] rounded-xl border border-gray-200 bg-white"
+                    />
+                  );
+                }
+
+                return (
+                  <img
+                    src={previewUrl}
+                    alt={previewingApp.paymentProofName || 'Payment Proof'}
+                    className="max-h-[60vh] max-w-full object-contain rounded-xl shadow-xs"
+                    onError={(e) => {
+                      (e.target as HTMLElement).style.display = 'none';
+                      const fallbackEl = document.getElementById('preview-fallback-msg');
+                      if (fallbackEl) fallbackEl.style.display = 'block';
+                    }}
+                  />
+                );
+              })()}
+              <div id="preview-fallback-msg" style={{ display: 'none' }} className="text-center text-xs text-gray-500 p-8">
+                <p className="font-semibold text-gray-700 mb-2">Preview not supported directly in browser for this file type.</p>
+                <p>Please use the Download button below to inspect the document.</p>
+              </div>
+            </div>
+
+            {/* Modal Footer Actions */}
+            <div className="pt-3 border-t border-gray-100 flex items-center justify-between gap-3 flex-wrap">
+              <span className="text-xs text-gray-500 truncate max-w-[250px]">
+                {previewingApp.paymentProofName || 'Proof Document'}
+              </span>
+              <div className="flex items-center gap-2">
+                <a
+                  href={`${API_BASE}/applications/${previewingApp.id}/payment-proof?token=${getAuthToken() || ''}&preview=1`}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold text-xs transition-colors"
+                >
+                  <ExternalLink className="w-3.5 h-3.5" />
+                  <span>Open Fullscreen</span>
+                </a>
+                <button
+                  type="button"
+                  onClick={() => handleDownloadProof(previewingApp)}
+                  className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-xl bg-[#00652c] hover:bg-emerald-800 text-white font-bold text-xs transition-colors cursor-pointer"
+                >
+                  <Download className="w-3.5 h-3.5" />
+                  <span>Download File</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

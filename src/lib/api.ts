@@ -1,6 +1,4 @@
-// API Client for Climate Concern Backend
-
-const API_BASE = import.meta.env.VITE_API_URL || '/api';
+export const API_BASE = import.meta.env.VITE_API_URL || '/api';
 
 export function getAuthToken(): string | null {
   return localStorage.getItem('cc_admin_token');

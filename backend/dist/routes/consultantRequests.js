@@ -160,7 +160,25 @@ router.get('/:id/download', requireAuth_1.requireAuth, (0, requirePermission_1.r
         res.status(404).json({ error: 'File not found' });
         return;
     }
-    res.download(cr.torFilePath, cr.torFileName ?? 'document');
+    let filePath = path_1.default.resolve(cr.torFilePath);
+    if (!fs_1.default.existsSync(filePath)) {
+        const fallback = path_1.default.join(uploadDir, path_1.default.basename(cr.torFilePath));
+        if (fs_1.default.existsSync(fallback)) {
+            filePath = fallback;
+        }
+        else {
+            res.status(404).json({ error: 'File missing on disk' });
+            return;
+        }
+    }
+    const isPreview = req.query.preview === '1' || req.query.view === '1';
+    if (isPreview) {
+        res.setHeader('Content-Disposition', `inline; filename="${encodeURIComponent(cr.torFileName || 'document')}"`);
+        res.sendFile(filePath);
+    }
+    else {
+        res.download(filePath, cr.torFileName ?? 'document');
+    }
 });
 exports.default = router;
 //# sourceMappingURL=consultantRequests.js.map

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Download, FileText, X, Search } from 'lucide-react';
-import { api } from '../../lib/api';
+import { api, API_BASE, getAuthToken } from '../../lib/api';
 import { useAdminAuth } from '../AdminAuthContext';
 import { useToast } from '../Toast';
 import { useConfirm } from '../ConfirmDialog';
@@ -308,7 +308,7 @@ export const ConsultantRequestsSection: React.FC = () => {
                 <span className="text-gray-400 font-medium block">Terms of Reference</span>
                 {selectedReq.torFileName ? (
                   <a
-                    href={`http://localhost:4000/api/consultant-requests/${selectedReq.id}/download`}
+                    href={`${API_BASE}/consultant-requests/${selectedReq.id}/download?token=${getAuthToken() || ''}`}
                     target="_blank"
                     rel="noreferrer"
                     className="inline-flex items-center gap-1 font-bold text-[#00652c] hover:underline"

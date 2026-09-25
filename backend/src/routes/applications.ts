@@ -154,11 +154,36 @@ router.get('/:id/payment-proof', requireAuth, requirePermission('applications', 
     res.status(404).json({ error: 'Payment proof file not found' });
     return;
   }
-  if (!fs.existsSync(app.paymentProofPath)) {
-    res.status(404).json({ error: 'Payment proof file missing on disk' });
-    return;
+
+  let filePath = path.resolve(app.paymentProofPath);
+  if (!fs.existsSync(filePath)) {
+    // Fallback: search in uploadDir by basename
+    const fallback = path.join(uploadDir, path.basename(app.paymentProofPath));
+    if (fs.existsSync(fallback)) {
+      filePath = fallback;
+    } else {
+      res.status(404).json({ error: 'Payment proof file missing on disk' });
+      return;
+    }
   }
-  res.download(app.paymentProofPath, app.paymentProofName || 'payment-proof');
+
+  const isPreview = req.query.preview === '1' || req.query.view === '1';
+  if (isPreview) {
+    const ext = path.extname(filePath).toLowerCase();
+    if (ext === '.pdf') {
+      res.setHeader('Content-Type', 'application/pdf');
+    } else if (['.jpg', '.jpeg'].includes(ext)) {
+      res.setHeader('Content-Type', 'image/jpeg');
+    } else if (ext === '.png') {
+      res.setHeader('Content-Type', 'image/png');
+    } else if (ext === '.webp') {
+      res.setHeader('Content-Type', 'image/webp');
+    }
+    res.setHeader('Content-Disposition', `inline; filename="${encodeURIComponent(app.paymentProofName || 'payment-proof')}"`);
+    res.sendFile(filePath);
+  } else {
+    res.download(filePath, app.paymentProofName || 'payment-proof');
+  }
 });
 
 // PATCH /api/applications/:id/status — admin only
