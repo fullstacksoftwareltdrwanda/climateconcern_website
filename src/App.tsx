@@ -26,6 +26,7 @@ import { ContactSection } from './admin/sections/ContactSection';
 import { LegalSection } from './admin/sections/LegalSection';
 import { LibrarySection } from './admin/sections/LibrarySection';
 import { AdminsSection } from './admin/sections/AdminsSection';
+import { ProfileSection } from './admin/sections/ProfileSection';
 
 function App() {
   return (
@@ -50,6 +51,7 @@ function App() {
             <Route path="legal" element={<LegalSection />} />
             <Route path="library" element={<LibrarySection />} />
             <Route path="admins" element={<AdminsSection />} />
+            <Route path="profile" element={<ProfileSection />} />
           </Route>
 
           {/* ── Public Website Routes ── */}

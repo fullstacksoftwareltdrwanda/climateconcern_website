@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Edit2, Trash2, X, Award } from 'lucide-react';
+import { Plus, Edit2, Trash2, X, Award, Upload } from 'lucide-react';
 import { api } from '../../lib/api';
 import { useAdminAuth } from '../AdminAuthContext';
 import { useToast } from '../Toast';
@@ -354,6 +354,37 @@ export const TeamSection: React.FC = () => {
                           Clear
                         </button>
                       )}
+                    </div>
+                    {/* File upload button */}
+                    <div className="mt-2">
+                      <label className="cursor-pointer inline-flex items-center gap-2 px-3 py-1.5 bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs font-semibold rounded-lg transition-colors">
+                        <Upload className="w-3.5 h-3.5" />
+                        Upload Photo File
+                        <input
+                          type="file"
+                          accept="image/*"
+                          className="hidden"
+                          onChange={async (e) => {
+                            const file = e.target.files?.[0];
+                            if (!file) return;
+                            const formData = new FormData();
+                            formData.append('image', file);
+                            try {
+                              const res = await fetch('/api/upload/image', {
+                                method: 'POST',
+                                headers: { Authorization: `Bearer ${localStorage.getItem('cc_admin_token')}` },
+                                body: formData,
+                              });
+                              const data = await res.json();
+                              if (data.url) setForm(f => ({ ...f, image: data.url }));
+                              else toast.error('Upload failed');
+                            } catch {
+                              toast.error('Upload failed');
+                            }
+                          }}
+                        />
+                      </label>
+                      <span className="text-[10px] text-gray-400 ml-2">Max 5MB · JPG, PNG, GIF, WebP</span>
                     </div>
                   </div>
                 </div>

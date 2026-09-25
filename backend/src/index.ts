@@ -18,6 +18,7 @@ import libraryRouter from './routes/library';
 import applicationsRouter from './routes/applications';
 import consultantRequestsRouter from './routes/consultantRequests';
 import exchangeRateRouter from './routes/exchangeRate';
+import uploadRouter from './routes/upload';
 
 const app = express();
 const PORT = Number(process.env.PORT ?? 4000);
@@ -67,6 +68,7 @@ app.use('/api/library', libraryRouter);
 app.use('/api/applications', applicationsRouter);
 app.use('/api/consultant-requests', consultantRequestsRouter);
 app.use('/api/exchange-rate', exchangeRateRouter);
+app.use('/api/upload', uploadRouter);
 
 // ─── Static frontend (production) ────────────────────────────
 const DIST_DIR = path.join(__dirname, '../../dist');

@@ -13,6 +13,7 @@ import {
   Shield,
   FolderArchive,
   UserCheck,
+  UserCog,
   LogOut,
   Menu,
   X,
@@ -67,6 +68,7 @@ const AdminLayoutInner: React.FC = () => {
     { label: 'Legal Pages', path: '/admin/legal', icon: Shield, show: hasPermission('legal', 'view') },
     { label: 'Library', path: '/admin/library', icon: FolderArchive, show: hasPermission('library', 'view') },
     { label: 'Admin Accounts', path: '/admin/admins', icon: UserCheck, show: admin.isMainAdmin },
+    { label: 'My Profile', path: '/admin/profile', icon: UserCog, show: true },
   ].filter((item) => item.show);
 
   const handleLogout = async () => {
