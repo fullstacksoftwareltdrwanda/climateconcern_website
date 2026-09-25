@@ -1,0 +1,215 @@
+import { Router, Request, Response } from 'express';
+import { z } from 'zod';
+import multer from 'multer';
+import path from 'path';
+import fs from 'fs';
+import prisma from '../lib/prisma';
+import { sendMail } from '../lib/mailer';
+import { requireAuth } from '../middleware/requireAuth';
+import { requirePermission } from '../middleware/requirePermission';
+
+const router = Router();
+
+// ─── File upload setup for Proof of Payment ─────────────────
+const uploadDir = path.join(__dirname, '../../uploads/payments');
+if (!fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir, { recursive: true });
+
+const storage = multer.diskStorage({
+  destination: (_req, _file, cb) => cb(null, uploadDir),
+  filename: (_req, file, cb) => {
+    const unique = `${Date.now()}-${Math.round(Math.random() * 1e9)}`;
+    cb(null, `${unique}${path.extname(file.originalname)}`);
+  },
+});
+
+const upload = multer({
+  storage,
+  limits: { fileSize: 15 * 1024 * 1024 }, // 15 MB
+  fileFilter: (_req, file, cb) => {
+    const allowed = ['.pdf', '.png', '.jpg', '.jpeg', '.webp'];
+    const ext = path.extname(file.originalname).toLowerCase();
+    if (allowed.includes(ext)) cb(null, true);
+    else cb(new Error('Only PDF, PNG, JPG, and WEBP files are allowed for payment proof'));
+  },
+});
+
+const createSchema = z.object({
+  name: z.string().min(1),
+  email: z.string().email(),
+  phone: z.string().optional(),
+  course: z.string().min(1),
+  amountPaid: z.string().optional(),
+  termsAccepted: z.union([z.boolean(), z.string().transform((v) => v === 'true')]).optional(),
+});
+
+const statusSchema = z.object({
+  status: z.enum(['APPROVED', 'REJECTED']),
+});
+
+// POST /api/applications — public (multipart/form-data or json)
+router.post('/', upload.single('paymentProof'), async (req: Request, res: Response): Promise<void> => {
+  const parsed = createSchema.safeParse(req.body);
+  if (!parsed.success) {
+    if (req.file) fs.unlink(req.file.path, () => {});
+    res.status(400).json({ error: 'Invalid request', details: parsed.error.flatten() });
+    return;
+  }
+
+  const paymentProofPath = req.file ? req.file.path : null;
+  const paymentProofName = req.file ? req.file.originalname : null;
+
+  const application = await prisma.application.create({
+    data: {
+      name: parsed.data.name,
+      email: parsed.data.email,
+      phone: parsed.data.phone || null,
+      course: parsed.data.course,
+      amountPaid: parsed.data.amountPaid || '$500 USD / ~675,000 RWF',
+      termsAccepted: parsed.data.termsAccepted ?? true,
+      paymentProofPath,
+      paymentProofName,
+    },
+  });
+
+  // Confirmation email to applicant
+  await sendMail(
+    application.email,
+    'Your Course Application & Payment Received — Climate Concern',
+    `
+      <div style="font-family:sans-serif;max-width:600px;margin:0 auto;padding:24px;">
+        <h2 style="color:#00652c;">Application & Proof of Payment Received</h2>
+        <p>Dear <strong>${application.name}</strong>,</p>
+        <p>Thank you for applying to the <strong>${application.course}</strong> at Climate Concern Rwanda.</p>
+        <div style="background:#f4fbf7;border:1px solid #ccebd7;padding:16px;border-radius:8px;margin:16px 0;">
+          <p style="margin:0 0 8px;font-weight:bold;color:#00652c;">Program Structure & Certification:</p>
+          <ul style="margin:0;padding-left:20px;font-size:14px;color:#333;">
+            <li><strong>Phase 1 (Included):</strong> Self-paced online learning portal (awards official Certificate of Completion)</li>
+            <li><strong>Phase 2 (Optional & Paid):</strong> Interactive expert support, live mentoring & project reviews (if you choose to participate)</li>
+            <li><strong>Self-Paced Tuition:</strong> $500 USD (~675,000 RWF)</li>
+          </ul>
+        </div>
+        <p>We have received your enrollment and payment documentation. Our training coordinators will verify your payment and review your application shortly. 
+           You will receive a confirmation email with your access credentials and program schedule within 2 business days.</p>
+        <hr style="border:1px solid #eee;margin:24px 0;" />
+        <p style="font-size:12px;color:#666;">Climate Concern Rwanda · Rusororo, Intare Are Concrete Road, plot 5746 Kigali, Rwanda</p>
+      </div>
+    `
+  ).catch(console.error);
+
+  // Notification email to all admins with applications.view permission
+  const admins = await prisma.admin.findMany({ where: { isActive: true } });
+  const adminEmails = admins
+    .filter((a) => {
+      const perms = a.permissions as Record<string, { view: boolean }>;
+      return a.isMainAdmin || perms?.applications?.view;
+    })
+    .map((a) => a.email);
+
+  if (adminEmails.length > 0) {
+    await sendMail(
+      adminEmails.join(','),
+      `New Training Application ($500 Paid) — ${application.name}`,
+      `
+        <div style="font-family:sans-serif;max-width:600px;margin:0 auto;padding:24px;">
+          <h2 style="color:#00652c;">New Training Application Received</h2>
+          <table style="width:100%;border-collapse:collapse;">
+            <tr><td style="padding:8px;border-bottom:1px solid #eee;font-weight:bold;">Name</td><td style="padding:8px;border-bottom:1px solid #eee;">${application.name}</td></tr>
+            <tr><td style="padding:8px;border-bottom:1px solid #eee;font-weight:bold;">Email</td><td style="padding:8px;border-bottom:1px solid #eee;">${application.email}</td></tr>
+            <tr><td style="padding:8px;border-bottom:1px solid #eee;font-weight:bold;">Phone</td><td style="padding:8px;border-bottom:1px solid #eee;">${application.phone ?? 'Not provided'}</td></tr>
+            <tr><td style="padding:8px;border-bottom:1px solid #eee;font-weight:bold;">Course</td><td style="padding:8px;border-bottom:1px solid #eee;">${application.course}</td></tr>
+            <tr><td style="padding:8px;border-bottom:1px solid #eee;font-weight:bold;">Fee Amount</td><td style="padding:8px;border-bottom:1px solid #eee;">${application.amountPaid}</td></tr>
+            <tr><td style="padding:8px;font-weight:bold;">Proof of Payment</td><td style="padding:8px;">${paymentProofName ? `Attached (${paymentProofName})` : 'None uploaded'}</td></tr>
+          </table>
+          <p style="margin-top:16px;"><a href="${process.env.FRONTEND_URL}/admin/applications" style="color:#00652c;">Review in Admin Panel →</a></p>
+        </div>
+      `
+    ).catch(console.error);
+  }
+
+  res.status(201).json({ success: true, id: application.id });
+});
+
+// GET /api/applications — admin only
+router.get('/', requireAuth, requirePermission('applications', 'view'), async (req: Request, res: Response): Promise<void> => {
+  const { status } = req.query;
+  const where = status ? { status: status as 'PENDING' | 'APPROVED' | 'REJECTED' } : {};
+  const applications = await prisma.application.findMany({
+    where,
+    orderBy: { createdAt: 'desc' },
+  });
+  res.json(applications);
+});
+
+// GET /api/applications/:id — admin only
+router.get('/:id', requireAuth, requirePermission('applications', 'view'), async (req: Request, res: Response): Promise<void> => {
+  const app = await prisma.application.findUnique({ where: { id: req.params.id } });
+  if (!app) { res.status(404).json({ error: 'Application not found' }); return; }
+  res.json(app);
+});
+
+// GET /api/applications/:id/payment-proof — admin only
+router.get('/:id/payment-proof', requireAuth, requirePermission('applications', 'view'), async (req: Request, res: Response): Promise<void> => {
+  const app = await prisma.application.findUnique({ where: { id: req.params.id } });
+  if (!app || !app.paymentProofPath) {
+    res.status(404).json({ error: 'Payment proof file not found' });
+    return;
+  }
+  if (!fs.existsSync(app.paymentProofPath)) {
+    res.status(404).json({ error: 'Payment proof file missing on disk' });
+    return;
+  }
+  res.download(app.paymentProofPath, app.paymentProofName || 'payment-proof');
+});
+
+// PATCH /api/applications/:id/status — admin only
+router.patch('/:id/status', requireAuth, requirePermission('applications', 'edit'), async (req: Request, res: Response): Promise<void> => {
+  const parsed = statusSchema.safeParse(req.body);
+  if (!parsed.success) { res.status(400).json({ error: 'Status must be APPROVED or REJECTED' }); return; }
+
+  const app = await prisma.application.findUnique({ where: { id: req.params.id } });
+  if (!app) { res.status(404).json({ error: 'Application not found' }); return; }
+
+  const updated = await prisma.application.update({
+    where: { id: req.params.id },
+    data: { status: parsed.data.status },
+  });
+
+  if (parsed.data.status === 'APPROVED') {
+    await sendMail(
+      app.email,
+      'Congratulations! Your Application is Approved — Climate Concern',
+      `
+        <div style="font-family:sans-serif;max-width:600px;margin:0 auto;padding:24px;">
+          <h2 style="color:#00652c;">🎉 Application Approved!</h2>
+          <p>Dear <strong>${app.name}</strong>,</p>
+          <p>We are delighted to confirm that your application for <strong>${app.course}</strong> has been <strong>approved</strong>.</p>
+          <p>Our training coordinators will reach out to you shortly with onboarding details, schedule, and payment instructions.</p>
+          <p>Welcome to the Climate Concern training community!</p>
+          <hr style="border:1px solid #eee;margin:24px 0;" />
+          <p style="font-size:12px;color:#666;">Climate Concern Rwanda · info@climateconcern.rw</p>
+        </div>
+      `
+    ).catch(console.error);
+  } else {
+    await sendMail(
+      app.email,
+      'Update on Your Application — Climate Concern',
+      `
+        <div style="font-family:sans-serif;max-width:600px;margin:0 auto;padding:24px;">
+          <h2 style="color:#333;">Application Update</h2>
+          <p>Dear <strong>${app.name}</strong>,</p>
+          <p>Thank you for your interest in the <strong>${app.course}</strong> at Climate Concern Rwanda.</p>
+          <p>After careful review, we are unable to approve your application for the current cohort.</p>
+          <p>We sincerely encourage you to apply again for our next cohort — spaces open up regularly and your background is valued. You can reapply any time at <a href="${process.env.FRONTEND_URL}/training" style="color:#00652c;">climateconcern.rw/training</a>.</p>
+          <p>If you have questions, feel free to reach out to us at <a href="mailto:info@climateconcern.rw" style="color:#00652c;">info@climateconcern.rw</a>.</p>
+          <hr style="border:1px solid #eee;margin:24px 0;" />
+          <p style="font-size:12px;color:#666;">Climate Concern Rwanda · info@climateconcern.rw</p>
+        </div>
+      `
+    ).catch(console.error);
+  }
+
+  res.json(updated);
+});
+
+export default router;

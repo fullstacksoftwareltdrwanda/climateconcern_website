@@ -1,0 +1,277 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ─────────────────────────────────────────────────────────────
+// Auth & Admin
+// ─────────────────────────────────────────────────────────────
+
+model Admin {
+  id           String   @id @default(cuid())
+  name         String
+  email        String   @unique
+  passwordHash String
+  isMainAdmin  Boolean  @default(false)
+  isActive     Boolean  @default(true)
+  /// JSON: { "team": { "view": true, "edit": true, "delete": true }, ... }
+  permissions  Json     @default("{}")
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@map("admins")
+}
+
+// ─────────────────────────────────────────────────────────────
+// Team
+// ─────────────────────────────────────────────────────────────
+
+model TeamMember {
+  id        String   @id @default(cuid())
+  name      String
+  role      String
+  isFounder Boolean  @default(false)
+  initials  String
+  bio       String?
+  image     String?
+  education Json     @default("[]") // string[]
+  keyAreas  Json     @default("[]") // string[]
+  order     Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("team_members")
+}
+
+// ─────────────────────────────────────────────────────────────
+// Services
+// ─────────────────────────────────────────────────────────────
+
+model Service {
+  id           String   @id @default(cuid())
+  serviceId    String   @unique // slug e.g. "advisory"
+  icon         String
+  tabLabel     String
+  headline     String
+  shortSummary String
+  deliverables Json     @default("[]") // string[]
+  subAreas     Json     @default("[]") // { title, description }[]
+  cta          String
+  ctaLink      String
+  color        String
+  order        Int      @default(0)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@map("services")
+}
+
+// ─────────────────────────────────────────────────────────────
+// Training
+// ─────────────────────────────────────────────────────────────
+
+model TrainingCourse {
+  id            String   @id @default(cuid())
+  courseId      String   @unique // slug
+  title         String
+  subtitle      String
+  badge         String
+  overview      String
+  modules       Json     @default("[]") // string[]
+  phase1Price   Float    @default(50)
+  phase2Price   Float    @default(50)
+  phase1Title   String   @default("Phase 1: Self-Paced Online Learning")
+  phase1Desc    String   @default("Complete online portal access with comprehensive modular curriculum, case studies, and reading materials. You earn an official Certificate of Completion upon finishing this phase.")
+  phase2Title   String   @default("Phase 2: Interactive Expert Support & Hands-On Practice")
+  phase2Desc    String   @default("Direct live mentoring with climate finance specialists, project design reviews, and hands-on practice in Rwanda. Note: Phase 2 cannot be taken alone without first completing Phase 1.")
+  order         Int      @default(0)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@map("training_courses")
+}
+
+// ─────────────────────────────────────────────────────────────
+// FAQs
+// ─────────────────────────────────────────────────────────────
+
+model FAQ {
+  id        String   @id @default(cuid())
+  question  String
+  answer    String
+  order     Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("faqs")
+}
+
+// ─────────────────────────────────────────────────────────────
+// Stats
+// ─────────────────────────────────────────────────────────────
+
+model Stat {
+  id        String   @id @default(cuid())
+  statId    String   @unique // slug
+  label     String
+  value     String
+  unit      String
+  tag       String
+  order     Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("stats")
+}
+
+// ─────────────────────────────────────────────────────────────
+// Contact Info (single row — upserted by id "singleton")
+// ─────────────────────────────────────────────────────────────
+
+model ContactInfo {
+  id              String   @id @default("singleton")
+  phone           String
+  phoneClean      String
+  email           String
+  physicalAddress String
+  xHandle         String
+  xUrl            String
+  linkedinHandle  String
+  linkedinUrl     String
+  igHandle        String
+  igUrl           String
+  updatedAt       DateTime @updatedAt
+
+  @@map("contact_info")
+}
+
+// ─────────────────────────────────────────────────────────────
+// Legal Content
+// ─────────────────────────────────────────────────────────────
+
+model LegalContent {
+  id        String   @id @default(cuid())
+  type      String   @unique // "terms" | "privacy"
+  title     String
+  content   String   // long-form markdown/HTML
+  updatedAt DateTime @updatedAt
+
+  @@map("legal_content")
+}
+
+// ─────────────────────────────────────────────────────────────
+// Library
+// ─────────────────────────────────────────────────────────────
+
+model LibraryCategory {
+  id        String        @id @default(cuid())
+  catId     String        @unique // slug
+  title     String
+  tagline   String
+  icon      String
+  order     Int           @default(0)
+  items     LibraryItem[]
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+
+  @@map("library_categories")
+}
+
+model LibraryItem {
+  id          String          @id @default(cuid())
+  categoryId  String
+  category    LibraryCategory @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  title       String
+  description String
+  date        String?
+  link        String?
+  tag         String?
+  order       Int             @default(0)
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+
+  @@map("library_items")
+}
+
+// ─────────────────────────────────────────────────────────────
+// Training Applications
+// ─────────────────────────────────────────────────────────────
+
+enum ApplicationStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+model Application {
+  id               String            @id @default(cuid())
+  name             String
+  email            String
+  phone            String?
+  course           String
+  paymentProofPath String?
+  paymentProofName String?
+  amountPaid       String?           @default("$500 USD / ~675,000 RWF")
+  termsAccepted    Boolean           @default(true)
+  status           ApplicationStatus @default(PENDING)
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+
+  @@map("applications")
+}
+
+// ─────────────────────────────────────────────────────────────
+// Consultant Requests (from Get In Touch page)
+// ─────────────────────────────────────────────────────────────
+
+enum ConsultantRequestStatus {
+  PENDING
+  REVIEWED
+  FULFILLED
+  REJECTED
+}
+
+model ConsultantRequest {
+  id            String                  @id @default(cuid())
+  clientName    String
+  clientEmail   String
+  title         String   // project/tender title
+  country       String
+  position      String   // position of needed consultant
+  education     String
+  experience    String   // years e.g. "5"
+  startMonth    String   // MM/YYYY
+  endMonth      String   // MM/YYYY
+  personDays    String
+  paymentMode   String
+  momoPhone     String?
+  torFilePath   String?  // uploaded Terms of Reference file path
+  torFileName   String?  // original filename
+  status        ConsultantRequestStatus @default(PENDING)
+  adminNotes    String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@map("consultant_requests")
+}
+
+// ─────────────────────────────────────────────────────────────
+// System Settings (Exchange Rate, App Settings)
+// ─────────────────────────────────────────────────────────────
+
+model SystemSetting {
+  id        String   @id @default(cuid())
+  key       String   @unique
+  value     String
+  updatedAt DateTime @updatedAt
+
+  @@map("system_settings")
+}
+
