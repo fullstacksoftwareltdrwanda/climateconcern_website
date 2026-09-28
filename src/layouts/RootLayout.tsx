@@ -26,7 +26,7 @@ export const RootLayout: React.FC = () => {
   return (
     <div className="flex flex-col min-h-screen bg-surface text-on-surface antialiased">
       <Header />
-      <main className="flex-1 w-full pt-20 pb-20 md:pb-0">
+      <main className="flex-1 w-full pt-16 pb-20 md:pb-0">
         <Outlet />
       </main>
       <Footer />

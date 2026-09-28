@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowRight } from 'lucide-react';
+import { ArrowRight, PhoneCall } from 'lucide-react';
 import { AnimateIn } from '../components/ui/AnimateIn';
-import { ourRecord as staticOurRecord } from '../data/bossContent';
+import { ourRecord as staticOurRecord, contactHandles } from '../data/bossContent';
 import { api } from '../lib/api';
 
 export const HomePage: React.FC = () => {
@@ -38,7 +38,7 @@ export const HomePage: React.FC = () => {
   return (
     <div className="w-full">
       {/* ── FULL-SCREEN HERO ── */}
-      <section className="relative min-h-[calc(100vh-5rem)] flex items-center px-layout overflow-hidden py-4 sm:py-6">
+      <section className="relative min-h-[calc(100vh-4rem)] flex items-center px-layout overflow-hidden py-4 sm:py-6">
         {/* Background */}
         <div className="absolute inset-0 z-0">
           <img
@@ -136,6 +136,33 @@ export const HomePage: React.FC = () => {
                           <ArrowRight className="w-3.5 h-3.5 text-emerald-400 opacity-50 group-hover:opacity-100 group-hover:translate-x-1 transition-all" />
                         </Link>
                       ))}
+
+                      {/* Direct Contact with pulsing / bipping indicator */}
+                      <a
+                        href={`tel:${contactHandles.phoneClean}`}
+                        className="flex items-center justify-between p-2 sm:p-2.5 rounded-xl bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-400/30 hover:border-[#00e074]/60 transition-all group"
+                        title="Call Kigali Office"
+                      >
+                        <div className="flex items-center gap-2.5">
+                          <div className="w-7 flex items-center justify-center text-emerald-400">
+                            <PhoneCall className="w-4 h-4" />
+                          </div>
+                          <div className="flex items-center gap-1.5 flex-wrap">
+                            <span className="text-xs sm:text-sm font-medium text-white/90">Contact:</span>
+                            <span className="text-xs sm:text-sm font-bold text-[#00e074] tracking-tight">
+                              {contactHandles.phone}
+                            </span>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2 shrink-0">
+                          {/* Bipping / pulsing dot */}
+                          <span className="relative flex h-2 w-2" title="Active Hotline">
+                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#00e074] opacity-75" />
+                            <span className="relative inline-flex rounded-full h-2 w-2 bg-[#00e074]" />
+                          </span>
+                          <ArrowRight className="w-3.5 h-3.5 text-emerald-400 opacity-50 group-hover:opacity-100 group-hover:translate-x-1 transition-all" />
+                        </div>
+                      </a>
                     </div>
                     <div className="mt-3 pt-2.5 border-t border-white/10 text-center">
                       <Link
