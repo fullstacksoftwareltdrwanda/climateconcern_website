@@ -26,23 +26,27 @@ const upload_1 = __importDefault(require("./routes/upload"));
 const app = (0, express_1.default)();
 const PORT = Number(process.env.PORT ?? 4000);
 // ─── Middleware ───────────────────────────────────────────────
-const allowedOrigins = [
-    'http://localhost:5173',
-    'http://localhost:4173',
-    'http://localhost:3025',
-    'http://192.168.1.65:3025',
-    ...(process.env.FRONTEND_URL
-        ? process.env.FRONTEND_URL.split(',').map((u) => u.trim())
-        : []),
+const allowedOriginRegexes = [
+    /^https?:\/\/localhost(:\d+)?$/,
+    /^https?:\/\/127\.0\.0\.1(:\d+)?$/,
+    /^https?:\/\/192\.168\.\d+\.\d+(:\d+)?$/,
+    /^https?:\/\/(.+\.)?climateconcern\.rw(:\d+)?$/,
 ];
+const customFrontendUrls = (process.env.FRONTEND_URL
+    ? process.env.FRONTEND_URL.split(',').map((u) => u.trim())
+    : []);
 app.use((0, cors_1.default)({
     origin: (origin, callback) => {
-        // Allow requests with no origin (mobile apps, curl, Postman)
+        // Allow requests with no origin (mobile apps, curl, Postman, internal calls)
         if (!origin)
             return callback(null, true);
-        if (allowedOrigins.includes(origin))
+        const isExplicitlyAllowed = customFrontendUrls.includes(origin);
+        const matchesPattern = allowedOriginRegexes.some((regex) => regex.test(origin));
+        if (isExplicitlyAllowed || matchesPattern) {
             return callback(null, true);
-        callback(new Error(`CORS: origin ${origin} not allowed`));
+        }
+        // Pass false instead of an Error so Express does not crash with a 500 error
+        callback(null, false);
     },
     credentials: true,
 }));
@@ -74,10 +78,26 @@ app.use('/api/consultant-requests', consultantRequests_1.default);
 app.use('/api/exchange-rate', exchangeRate_1.default);
 app.use('/api/upload', upload_1.default);
 // ─── Static frontend (production) ────────────────────────────
-const DIST_DIR = path_1.default.join(__dirname, '../../dist');
-app.use(express_1.default.static(DIST_DIR));
+const DIST_DIR = path_1.default.resolve(__dirname, '../../dist');
+app.use(express_1.default.static(DIST_DIR, {
+    setHeaders: (res, filePath) => {
+        // Never cache index.html so browser always gets the latest asset hashes
+        if (filePath.endsWith('index.html')) {
+            res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+        }
+    },
+}));
 // ─── SPA catch-all (must be AFTER all /api routes) ───────────
-app.get('*', (_req, res) => {
+app.get('*', (req, res) => {
+    // If a request was meant for an asset, api, upload, or file with extension, do NOT serve index.html (which causes MIME type errors)
+    if (req.path.startsWith('/api') ||
+        req.path.startsWith('/uploads') ||
+        req.path.startsWith('/assets') ||
+        path_1.default.extname(req.path)) {
+        res.status(404).json({ error: 'Asset not found' });
+        return;
+    }
+    res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
     res.sendFile(path_1.default.join(DIST_DIR, 'index.html'));
 });
 // ─── Start ───────────────────────────────────────────────────
