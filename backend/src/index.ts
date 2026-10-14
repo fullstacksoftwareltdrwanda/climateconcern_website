@@ -20,6 +20,7 @@ import applicationsRouter from './routes/applications';
 import consultantRequestsRouter from './routes/consultantRequests';
 import exchangeRateRouter from './routes/exchangeRate';
 import uploadRouter from './routes/upload';
+import paymentSettingsRouter from './routes/paymentSettings';
 
 const app = express();
 const PORT = Number(process.env.PORT ?? 4000);
@@ -84,6 +85,7 @@ app.use('/api/applications', applicationsRouter);
 app.use('/api/consultant-requests', consultantRequestsRouter);
 app.use('/api/exchange-rate', exchangeRateRouter);
 app.use('/api/upload', uploadRouter);
+app.use('/api/payment-settings', paymentSettingsRouter);
 
 // ─── Static frontend (production) ────────────────────────────
 const DIST_DIR = path.resolve(__dirname, '../../dist');

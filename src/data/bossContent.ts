@@ -377,6 +377,24 @@ export const contactHandles = {
   igUrl: 'https://instagram.com/ClimateConcern',
 };
 
+export interface PaymentDetails {
+  momoNumber: string;
+  momoName: string;
+  bankName: string;
+  bankAccountNumber: string;
+  bankAccountName: string;
+  instructions: string;
+}
+
+export const defaultPaymentDetails: PaymentDetails = {
+  momoNumber: '0788481439',
+  momoName: 'Climate Concern Rwanda',
+  bankName: 'Equity Bank',
+  bankAccountNumber: '4002200136744',
+  bankAccountName: 'Climate Concern Rwanda',
+  instructions: 'Transfer the fee via MTN Mobile Money or Equity Bank, then attach your proof of payment receipt below.',
+};
+
 export const legalContent = {
   terms: {
     title: 'Terms and Conditions',

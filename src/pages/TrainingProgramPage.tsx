@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { ArrowRight, CheckCircle2, BookOpen, GraduationCap, ShieldCheck, ChevronRight, AlertCircle } from 'lucide-react';
+import { ArrowRight, CheckCircle2, BookOpen, GraduationCap, ShieldCheck, ChevronRight, AlertCircle, Copy, Check } from 'lucide-react';
 import { AnimateIn } from '../components/ui/AnimateIn';
-import { trainingProgram as staticTrainingProgram, type StaticTrainingCourse } from '../data/bossContent';
+import { trainingProgram as staticTrainingProgram, type StaticTrainingCourse, defaultPaymentDetails, type PaymentDetails } from '../data/bossContent';
 import { api } from '../lib/api';
 import { useExchangeRate, formatPriceDisplay, formatRwf, convertUsdToRwf } from '../lib/currency';
 
@@ -12,6 +12,8 @@ export const TrainingProgramPage: React.FC = () => {
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [termsAccepted, setTermsAccepted] = useState<boolean>(false);
   const [paymentFile, setPaymentFile] = useState<File | null>(null);
+  const [paymentDetails, setPaymentDetails] = useState<PaymentDetails>(defaultPaymentDetails);
+  const [copiedField, setCopiedField] = useState<string | null>(null);
   const [form, setForm] = useState({
     name: '',
     email: '',
@@ -35,7 +37,19 @@ export const TrainingProgramPage: React.FC = () => {
         if (data && data.length > 0) setTrainingCourses(data as any);
       })
       .catch(() => { /* fall back to static */ });
+
+    api.get<PaymentDetails>('/payment-settings')
+      .then((data) => {
+        if (data && data.momoNumber) setPaymentDetails(data);
+      })
+      .catch(() => { /* keep default */ });
   }, []);
+
+  const handleCopy = (text: string, field: string) => {
+    navigator.clipboard.writeText(text);
+    setCopiedField(field);
+    setTimeout(() => setCopiedField(null), 2000);
+  };
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -524,6 +538,96 @@ export const TrainingProgramPage: React.FC = () => {
                           I acknowledge that this registration is for <strong>Phase 1 (Self-Paced Online)</strong> at <strong>${phase1Fee} USD ({phase1Display.approxRwf})</strong>, which awards an official Certificate of Completion. I understand that <strong>Phase 2 (hands-on practice in Rwanda)</strong> is optional, paid separately (${phase2Fee} USD), and cannot be taken without first completing Phase 1. *
                         </span>
                       </label>
+                    </div>
+
+                    {/* ── Official Payment Coordinates Box ── */}
+                    <div className="p-4 sm:p-5 rounded-2xl bg-gradient-to-br from-[#022415] to-[#01140b] border border-[#00e074]/40 shadow-lg space-y-3.5">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <span className="w-2.5 h-2.5 rounded-full bg-[#00e074] shadow-[0_0_8px_#00e074]" />
+                          <span className="text-xs font-bold uppercase tracking-wider text-emerald-300">
+                            Where to Pay ({phase1Display.fullLabel})
+                          </span>
+                        </div>
+                        <span className="text-[10px] px-2 py-0.5 rounded-full bg-[#00e074]/15 text-[#00e074] font-semibold border border-[#00e074]/30">
+                          Official Accounts
+                        </span>
+                      </div>
+
+                      <p className="text-[11px] text-gray-300 leading-relaxed">
+                        {paymentDetails.instructions || 'Please transfer the registration fee via Mobile Money (MoMo) or Bank Transfer below, then attach your transaction receipt/screenshot:'}
+                      </p>
+
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        {/* Option 1: Mobile Money (MoMo) */}
+                        <div className="p-3.5 rounded-xl bg-white/5 border border-emerald-400/30 hover:border-[#00e074] transition-all space-y-1.5">
+                          <div className="flex items-center justify-between">
+                            <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-400">
+                              Option 1: Mobile Money (MoMo)
+                            </span>
+                            <span className="text-xs">📱</span>
+                          </div>
+                          <div className="flex items-center justify-between">
+                            <div>
+                              <div className="text-xs text-gray-400">Phone Number:</div>
+                              <a
+                                href={`tel:${paymentDetails.momoNumber.replace(/\s+/g, '')}`}
+                                className="font-mono text-base font-extrabold text-[#00e074] hover:underline"
+                              >
+                                {paymentDetails.momoNumber}
+                              </a>
+                            </div>
+                            <button
+                              type="button"
+                              onClick={() => handleCopy(paymentDetails.momoNumber, 'MoMo Number')}
+                              className="p-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-white transition-colors"
+                              title="Copy MoMo Number"
+                            >
+                              {copiedField === 'MoMo Number' ? (
+                                <Check className="w-3.5 h-3.5 text-[#00e074]" />
+                              ) : (
+                                <Copy className="w-3.5 h-3.5" />
+                              )}
+                            </button>
+                          </div>
+                          <div className="text-[11px] text-gray-300">
+                            Recipient: <strong className="text-white">{paymentDetails.momoName}</strong>
+                          </div>
+                        </div>
+
+                        {/* Option 2: Bank Transfer (Equity Bank) */}
+                        <div className="p-3.5 rounded-xl bg-white/5 border border-blue-400/30 hover:border-blue-300 transition-all space-y-1.5">
+                          <div className="flex items-center justify-between">
+                            <span className="text-[10px] font-bold uppercase tracking-wider text-blue-300">
+                              Option 2: {paymentDetails.bankName}
+                            </span>
+                            <span className="text-xs">🏦</span>
+                          </div>
+                          <div className="flex items-center justify-between">
+                            <div>
+                              <div className="text-xs text-gray-400">Account Number:</div>
+                              <span className="font-mono text-base font-extrabold text-blue-200">
+                                {paymentDetails.bankAccountNumber}
+                              </span>
+                            </div>
+                            <button
+                              type="button"
+                              onClick={() => handleCopy(paymentDetails.bankAccountNumber, 'Account Number')}
+                              className="p-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-white transition-colors"
+                              title="Copy Account Number"
+                            >
+                              {copiedField === 'Account Number' ? (
+                                <Check className="w-3.5 h-3.5 text-[#00e074]" />
+                              ) : (
+                                <Copy className="w-3.5 h-3.5" />
+                              )}
+                            </button>
+                          </div>
+                          <div className="text-[11px] text-gray-300">
+                            Account Name: <strong className="text-white">{paymentDetails.bankAccountName}</strong>
+                          </div>
+                        </div>
+                      </div>
                     </div>
 
                     {/* ── Proof of Payment Upload ── */}

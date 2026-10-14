@@ -23,6 +23,7 @@ const applications_1 = __importDefault(require("./routes/applications"));
 const consultantRequests_1 = __importDefault(require("./routes/consultantRequests"));
 const exchangeRate_1 = __importDefault(require("./routes/exchangeRate"));
 const upload_1 = __importDefault(require("./routes/upload"));
+const paymentSettings_1 = __importDefault(require("./routes/paymentSettings"));
 const app = (0, express_1.default)();
 const PORT = Number(process.env.PORT ?? 4000);
 // ─── Middleware ───────────────────────────────────────────────
@@ -77,6 +78,7 @@ app.use('/api/applications', applications_1.default);
 app.use('/api/consultant-requests', consultantRequests_1.default);
 app.use('/api/exchange-rate', exchangeRate_1.default);
 app.use('/api/upload', upload_1.default);
+app.use('/api/payment-settings', paymentSettings_1.default);
 // ─── Static frontend (production) ────────────────────────────
 const DIST_DIR = path_1.default.resolve(__dirname, '../../dist');
 app.use(express_1.default.static(DIST_DIR, {

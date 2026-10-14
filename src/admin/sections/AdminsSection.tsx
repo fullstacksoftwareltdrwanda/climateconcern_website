@@ -4,6 +4,7 @@ import { api } from '../../lib/api';
 import { useAdminAuth, type AdminUser } from '../AdminAuthContext';
 import { useToast } from '../Toast';
 import { useConfirm } from '../ConfirmDialog';
+import { PaymentSettingsCard } from '../components/PaymentSettingsCard';
 
 const SECTIONS = [
   { id: 'applications', label: 'Course Applications' },
@@ -183,6 +184,9 @@ export const AdminsSection: React.FC = () => {
           <span>New Admin Account</span>
         </button>
       </div>
+
+      {/* ── Official Payment Receiving Accounts (MoMo & Equity Bank) ── */}
+      <PaymentSettingsCard />
 
       <div className="bg-white rounded-3xl border border-gray-200 shadow-sm overflow-hidden">
         {loading ? (

@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { Phone, Mail, MapPin, Upload, CheckCircle2, ArrowRight, CreditCard, Smartphone, ChevronRight, AlertCircle } from 'lucide-react';
+import { Phone, Mail, MapPin, Upload, CheckCircle2, ArrowRight, CreditCard, Smartphone, ChevronRight, AlertCircle, Building, Copy, Check } from 'lucide-react';
 import { AnimateIn } from '../components/ui/AnimateIn';
-import { contactHandles as staticContactHandles } from '../data/bossContent';
+import { contactHandles as staticContactHandles, defaultPaymentDetails, type PaymentDetails } from '../data/bossContent';
 import { api } from '../lib/api';
 
 export const GetInTouchPage: React.FC = () => {
   const [contactHandles, setContactHandles] = useState(staticContactHandles);
+  const [paymentDetails, setPaymentDetails] = useState<PaymentDetails>(defaultPaymentDetails);
+  const [copiedField, setCopiedField] = useState<string | null>(null);
 
   useEffect(() => {
     api.get<any>('/contact')
@@ -26,7 +28,19 @@ export const GetInTouchPage: React.FC = () => {
         }
       })
       .catch(() => { /* fall back to static */ });
+
+    api.get<PaymentDetails>('/payment-settings')
+      .then((data) => {
+        if (data && data.momoNumber) setPaymentDetails(data);
+      })
+      .catch(() => { /* keep default */ });
   }, []);
+
+  const handleCopy = (text: string, field: string) => {
+    navigator.clipboard.writeText(text);
+    setCopiedField(field);
+    setTimeout(() => setCopiedField(null), 2000);
+  };
 
   const [form, setForm] = useState({
     title: '',
@@ -38,7 +52,7 @@ export const GetInTouchPage: React.FC = () => {
     endMonthYear: '',
     personDays: '60',
     file: null as File | null,
-    paymentMode: 'Visa',
+    paymentMode: 'MTN Mobile Money (MoMo)',
     momoPhone: '',
     clientName: '',
     clientEmail: '',
@@ -505,46 +519,128 @@ export const GetInTouchPage: React.FC = () => {
                   </label>
                 </div>
 
-                {/* 9. Select Payment Mode: Visa, MasterCard, MoMo */}
-                <div className="pt-2">
-                  <label className="text-xs font-bold text-gray-700 block mb-2">
-                    Select Payment Mode *
-                  </label>
-                  <div className="grid grid-cols-3 gap-3 mb-3">
-                    {['Visa', 'MasterCard', 'MoMo (Phone number)'].map((mode) => (
-                      <button
-                        type="button"
-                        key={mode}
-                        onClick={() => setForm({ ...form, paymentMode: mode })}
-                        className={`p-3 rounded-xl border text-xs font-bold flex flex-col items-center justify-center gap-1 transition-all ${
-                          form.paymentMode === mode
-                            ? 'bg-emerald-50 border-[#00652c] text-[#00652c] shadow-xs'
-                            : 'bg-white border-gray-200 text-gray-600 hover:bg-gray-50'
-                        }`}
-                      >
-                        {mode.includes('MoMo') ? (
-                          <Smartphone className="w-4 h-4" />
-                        ) : (
-                          <CreditCard className="w-4 h-4" />
-                        )}
-                        <span>{mode}</span>
-                      </button>
-                    ))}
+                {/* 9. Select Payment Mode: MoMo, Equity Bank, Visa/MasterCard */}
+                <div className="pt-2 space-y-4">
+                  <div>
+                    <label className="text-xs font-bold text-gray-700 block mb-2">
+                      Select Payment Mode *
+                    </label>
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                      {[
+                        { id: 'MTN Mobile Money (MoMo)', label: 'MTN Mobile Money', icon: Smartphone, tag: 'MoMo' },
+                        { id: 'Bank Transfer (Equity Bank)', label: 'Equity Bank Transfer', icon: Building, tag: 'Bank Wire' },
+                        { id: 'Visa / MasterCard', label: 'Visa / MasterCard', icon: CreditCard, tag: 'Card' },
+                      ].map((item) => {
+                        const Icon = item.icon;
+                        const isSelected = form.paymentMode === item.id || (item.id.includes('MoMo') && form.paymentMode.includes('MoMo'));
+                        return (
+                          <button
+                            type="button"
+                            key={item.id}
+                            onClick={() => setForm({ ...form, paymentMode: item.id })}
+                            className={`p-3.5 rounded-2xl border text-xs font-bold flex flex-col items-center justify-center gap-1.5 transition-all ${
+                              isSelected
+                                ? 'bg-emerald-50 border-[#00652c] text-[#00652c] shadow-xs ring-1 ring-[#00652c]'
+                                : 'bg-white border-gray-200 text-gray-600 hover:bg-gray-50'
+                            }`}
+                          >
+                            <Icon className="w-5 h-5" />
+                            <span>{item.label}</span>
+                            <span className="text-[10px] text-gray-400 font-normal">{item.tag}</span>
+                          </button>
+                        );
+                      })}
+                    </div>
                   </div>
 
+                  {/* MoMo Payment Coordinates Display */}
                   {form.paymentMode.includes('MoMo') && (
-                    <div className="mt-3">
-                      <label className="text-xs font-bold text-gray-700 block mb-1">
-                        MoMo Phone Number *
-                      </label>
-                      <input
-                        required
-                        type="tel"
-                        value={form.momoPhone}
-                        onChange={(e) => setForm({ ...form, momoPhone: e.target.value })}
-                        placeholder="e.g. 0788481439"
-                        className="w-full px-4 py-2.5 rounded-xl border border-gray-200 bg-gray-50 text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#00652c]"
-                      />
+                    <div className="p-4 sm:p-5 rounded-2xl bg-amber-50/60 border border-amber-200 space-y-3">
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs font-bold text-amber-900 flex items-center gap-2">
+                          <Smartphone className="w-4 h-4 text-amber-600" />
+                          Pay via MTN Mobile Money
+                        </span>
+                        <span className="text-[10px] bg-amber-100 text-amber-800 font-semibold px-2 py-0.5 rounded">
+                          Official MoMo Receiver
+                        </span>
+                      </div>
+                      
+                      <div className="p-3.5 bg-white rounded-xl border border-amber-200/80 flex items-center justify-between gap-2">
+                        <div>
+                          <div className="text-[11px] text-gray-500 font-medium">Send Payment to MoMo Number:</div>
+                          <a
+                            href={`tel:${paymentDetails.momoNumber.replace(/\s+/g, '')}`}
+                            className="font-mono text-base font-extrabold text-[#00652c] hover:underline"
+                          >
+                            {paymentDetails.momoNumber}
+                          </a>
+                          <div className="text-[11px] text-gray-600">
+                            Registered Name: <strong>{paymentDetails.momoName}</strong>
+                          </div>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => handleCopy(paymentDetails.momoNumber, 'MoMo Number')}
+                          className="p-2 rounded-xl bg-gray-100 hover:bg-gray-200 text-gray-700 transition-colors shrink-0"
+                          title="Copy MoMo number"
+                        >
+                          {copiedField === 'MoMo Number' ? <Check className="w-4 h-4 text-emerald-600" /> : <Copy className="w-4 h-4" />}
+                        </button>
+                      </div>
+
+                      <div>
+                        <label className="text-xs font-bold text-gray-700 block mb-1">
+                          Your MoMo Phone / Sender Number *
+                        </label>
+                        <input
+                          required
+                          type="tel"
+                          value={form.momoPhone}
+                          onChange={(e) => setForm({ ...form, momoPhone: e.target.value })}
+                          placeholder="e.g. 078..."
+                          className="w-full px-4 py-2.5 rounded-xl border border-gray-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-[#00652c]"
+                        />
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Bank Transfer Coordinates Display */}
+                  {(form.paymentMode.includes('Bank') || form.paymentMode.includes('Visa') || form.paymentMode.includes('MasterCard')) && (
+                    <div className="p-4 sm:p-5 rounded-2xl bg-blue-50/60 border border-blue-200 space-y-3">
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs font-bold text-blue-900 flex items-center gap-2">
+                          <Building className="w-4 h-4 text-blue-600" />
+                          Pay via Bank Wire / Direct Deposit
+                        </span>
+                        <span className="text-[10px] bg-blue-100 text-blue-800 font-semibold px-2 py-0.5 rounded">
+                          Official Bank Details
+                        </span>
+                      </div>
+
+                      <div className="p-3.5 bg-white rounded-xl border border-blue-200/80 flex items-center justify-between gap-2">
+                        <div>
+                          <div className="text-[11px] text-gray-500 font-medium">Bank & Account Number:</div>
+                          <div className="font-mono text-base font-extrabold text-blue-950">
+                            {paymentDetails.bankName} — {paymentDetails.bankAccountNumber}
+                          </div>
+                          <div className="text-[11px] text-gray-600">
+                            Beneficiary: <strong>{paymentDetails.bankAccountName}</strong>
+                          </div>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => handleCopy(paymentDetails.bankAccountNumber, 'Bank Account')}
+                          className="p-2 rounded-xl bg-gray-100 hover:bg-gray-200 text-gray-700 transition-colors shrink-0"
+                          title="Copy account number"
+                        >
+                          {copiedField === 'Bank Account' ? <Check className="w-4 h-4 text-emerald-600" /> : <Copy className="w-4 h-4" />}
+                        </button>
+                      </div>
+
+                      <p className="text-[11px] text-gray-500 leading-relaxed">
+                        Please wire transfer or direct deposit to our {paymentDetails.bankName} account above. Our financial operations desk will confirm receipt upon reviewing your consultant request.
+                      </p>
                     </div>
                   )}
                 </div>
