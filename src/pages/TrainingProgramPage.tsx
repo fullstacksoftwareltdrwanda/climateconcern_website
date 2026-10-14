@@ -384,33 +384,33 @@ export const TrainingProgramPage: React.FC = () => {
           {/* Quick Enrollment Card */}
           <div id="enroll" className="max-w-2xl mx-auto scroll-mt-24">
             <AnimateIn direction="up">
-              <div className="bg-[#031d12] text-white rounded-3xl p-8 sm:p-10 border border-emerald-800/50 shadow-xl">
+              <div className="bg-white text-gray-900 rounded-3xl p-8 sm:p-10 border border-gray-200 shadow-xl">
                 <div className="text-center mb-8">
-                  <span className="text-xs font-bold uppercase tracking-widest text-[#00e074] block mb-1">
+                  <span className="text-xs font-bold uppercase tracking-widest text-[#00652c] block mb-1">
                     Direct Registration
                   </span>
-                  <h3 className="font-display text-2xl sm:text-3xl font-bold text-white mb-2">
+                  <h3 className="font-display text-2xl sm:text-3xl font-bold text-gray-900 mb-2">
                     Enroll in Training Program
                   </h3>
-                  <p className="text-xs text-emerald-200/80">
+                  <p className="text-xs text-gray-500">
                     Register your seat for the upcoming certified cohort. Tuition includes self-paced online modules with a Certificate of Completion, with optional interactive expert support.
                   </p>
                 </div>
 
                 {registered ? (
-                  <div className="p-6 rounded-2xl bg-white/10 border border-emerald-400/30 text-center">
-                    <ShieldCheck className="w-10 h-10 text-[#00e074] mx-auto mb-3" />
-                    <h4 className="font-bold text-lg text-white mb-1">Registration & Payment Submitted!</h4>
-                    <p className="text-xs text-gray-300 leading-relaxed mb-4">
+                  <div className="p-6 rounded-2xl bg-emerald-50 border border-emerald-200 text-center">
+                    <ShieldCheck className="w-10 h-10 text-[#00a859] mx-auto mb-3" />
+                    <h4 className="font-bold text-lg text-gray-900 mb-1">Registration & Payment Submitted!</h4>
+                    <p className="text-xs text-gray-600 leading-relaxed mb-4">
                       Thank you, <strong>{form.name}</strong>. We have received your application for <strong>{form.course}</strong> along with your proof of payment ({phase1Display.fullLabel}).
                     </p>
-                    <div className="p-3 bg-white/5 rounded-xl border border-white/10 text-xs text-emerald-200 text-left space-y-2 mb-4">
+                    <div className="p-3 bg-white rounded-xl border border-gray-200 text-xs text-gray-700 text-left space-y-2 mb-4">
                       <div className="flex items-start gap-2">
-                        <CheckCircle2 className="w-4 h-4 text-[#00e074] shrink-0 mt-0.5" />
+                        <CheckCircle2 className="w-4 h-4 text-[#00a859] shrink-0 mt-0.5" />
                         <span><strong>Phase 1:</strong> Online self-paced learning portal credentials will be sent to <strong>{form.email}</strong>. Finishing awards your official Certificate of Completion.</span>
                       </div>
                       <div className="flex items-start gap-2">
-                        <CheckCircle2 className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
+                        <CheckCircle2 className="w-4 h-4 text-amber-500 shrink-0 mt-0.5" />
                         <span><strong>Phase 2 (Optional):</strong> After completing Phase 1, you can optionally register for Phase 2 ({phase2Display.fullLabel}) for hands-on practice in Rwanda and direct expert mentorship.</span>
                       </div>
                     </div>
@@ -422,7 +422,7 @@ export const TrainingProgramPage: React.FC = () => {
                         setPaymentFile(null);
                         setForm({ name: '', email: '', phone: '', course: trainingCourses[0]?.title || 'Certified Carbon Market Courses' });
                       }}
-                      className="text-xs font-bold text-[#00e074] hover:underline"
+                      className="text-xs font-bold text-[#00652c] hover:underline"
                     >
                       ← Submit another registration
                     </button>
@@ -430,54 +430,54 @@ export const TrainingProgramPage: React.FC = () => {
                 ) : (
                   <form onSubmit={handleRegister} className="space-y-4">
                     {submitError && (
-                      <div className="p-3 rounded-xl bg-rose-900/60 border border-rose-500/50 flex items-center gap-2 text-rose-200 text-xs">
-                        <AlertCircle className="w-4 h-4 text-rose-400 shrink-0" />
+                      <div className="p-3 rounded-xl bg-rose-50 border border-rose-200 flex items-center gap-2 text-rose-700 text-xs">
+                        <AlertCircle className="w-4 h-4 text-rose-500 shrink-0" />
                         <span>{submitError}</span>
                       </div>
                     )}
                     <div>
-                      <label className="text-xs font-semibold text-gray-300 block mb-1">Full Name *</label>
+                      <label className="text-xs font-semibold text-gray-700 block mb-1">Full Name *</label>
                       <input
                         required
                         type="text"
                         value={form.name}
                         onChange={(e) => setForm({ ...form, name: e.target.value })}
                         placeholder="Your full name"
-                        className="w-full px-4 py-3 rounded-xl bg-white/10 border border-white/20 text-white placeholder-gray-400 text-sm focus:outline-none focus:ring-2 focus:ring-[#00e074]"
+                        className="w-full px-4 py-3 rounded-xl bg-gray-50 border border-gray-200 text-gray-900 placeholder-gray-400 text-sm focus:outline-none focus:ring-2 focus:ring-[#00a859]"
                       />
                     </div>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <div>
-                        <label className="text-xs font-semibold text-gray-300 block mb-1">Email Address *</label>
+                        <label className="text-xs font-semibold text-gray-700 block mb-1">Email Address *</label>
                         <input
                           required
                           type="email"
                           value={form.email}
                           onChange={(e) => setForm({ ...form, email: e.target.value })}
                           placeholder="name@organization.com"
-                          className="w-full px-4 py-3 rounded-xl bg-white/10 border border-white/20 text-white placeholder-gray-400 text-sm focus:outline-none focus:ring-2 focus:ring-[#00e074]"
+                          className="w-full px-4 py-3 rounded-xl bg-gray-50 border border-gray-200 text-gray-900 placeholder-gray-400 text-sm focus:outline-none focus:ring-2 focus:ring-[#00a859]"
                         />
                       </div>
                       <div>
-                        <label className="text-xs font-semibold text-gray-300 block mb-1">Phone Number</label>
+                        <label className="text-xs font-semibold text-gray-700 block mb-1">Phone Number</label>
                         <input
                           type="tel"
                           value={form.phone}
                           onChange={(e) => setForm({ ...form, phone: e.target.value })}
                           placeholder="+250 78..."
-                          className="w-full px-4 py-3 rounded-xl bg-white/10 border border-white/20 text-white placeholder-gray-400 text-sm focus:outline-none focus:ring-2 focus:ring-[#00e074]"
+                          className="w-full px-4 py-3 rounded-xl bg-gray-50 border border-gray-200 text-gray-900 placeholder-gray-400 text-sm focus:outline-none focus:ring-2 focus:ring-[#00a859]"
                         />
                       </div>
                     </div>
                     <div>
-                      <label className="text-xs font-semibold text-gray-300 block mb-1">Select Course *</label>
+                      <label className="text-xs font-semibold text-gray-700 block mb-1">Select Course *</label>
                       <select
                         value={form.course}
                         onChange={(e) => setForm({ ...form, course: e.target.value })}
-                        className="w-full px-4 py-3 rounded-xl bg-white/10 border border-white/20 text-white text-sm focus:outline-none focus:ring-2 focus:ring-[#00e074]"
+                        className="w-full px-4 py-3 rounded-xl bg-gray-50 border border-gray-200 text-gray-900 text-sm focus:outline-none focus:ring-2 focus:ring-[#00a859]"
                       >
                         {trainingCourses.map((c: any) => (
-                          <option key={c.id || c.title} value={c.title} className="bg-[#031d12] text-white">
+                          <option key={c.id || c.title} value={c.title} className="bg-white text-gray-900">
                             {c.title}
                           </option>
                         ))}
@@ -485,94 +485,94 @@ export const TrainingProgramPage: React.FC = () => {
                     </div>
 
                     {/* ── Two-Phase Learning Notice & Tuition Agreement ── */}
-                    <div className="p-4 sm:p-5 rounded-2xl bg-emerald-950/90 border border-[#00e074]/30 text-xs space-y-3">
-                      <div className="flex items-center gap-2 font-bold text-white text-sm">
-                        <GraduationCap className="w-5 h-5 text-[#00e074]" />
+                    <div className="p-4 sm:p-5 rounded-2xl bg-emerald-50/60 border border-emerald-200 text-xs space-y-3">
+                      <div className="flex items-center gap-2 font-bold text-gray-900 text-sm">
+                        <GraduationCap className="w-5 h-5 text-[#00a859]" />
                         <span>Training Structure, Certification & Hands-On Practice in Rwanda</span>
                       </div>
-                      <p className="text-emerald-100/90 leading-relaxed text-[12px]">
+                      <p className="text-gray-600 leading-relaxed text-[12px]">
                         Enrollment in <strong>{form.course}</strong> is structured in two sequential phases:
                       </p>
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-                        <div className="p-3 rounded-xl bg-white/5 border border-white/10">
-                          <span className="font-bold text-[#00e074] block mb-0.5">1. Self-Paced Online (Enrolling Now)</span>
-                          <span className="text-[11px] text-gray-300 block mb-1">
+                        <div className="p-3 rounded-xl bg-white border border-gray-200">
+                          <span className="font-bold text-[#00652c] block mb-0.5">1. Self-Paced Online (Enrolling Now)</span>
+                          <span className="text-[11px] text-gray-600 block mb-1">
                             Complete modular curriculum and resources. Upon finishing, you earn an official <strong>Certificate of Completion</strong>.
                           </span>
-                          <span className="text-[11px] font-bold text-white">
+                          <span className="text-[11px] font-bold text-gray-900">
                             Fee: {phase1Display.fullLabel}
                           </span>
                         </div>
-                        <div className="p-3 rounded-xl bg-white/5 border border-amber-400/30">
-                          <span className="font-bold text-amber-300 block mb-0.5">2. Hands-On Practice in Rwanda (Optional)</span>
-                          <span className="text-[11px] text-gray-300 block mb-1">
+                        <div className="p-3 rounded-xl bg-amber-50/60 border border-amber-200">
+                          <span className="font-bold text-amber-700 block mb-0.5">2. Hands-On Practice in Rwanda (Optional)</span>
+                          <span className="text-[11px] text-gray-600 block mb-1">
                             Direct expert mentorship & field practice in Rwanda 🇷🇼. <strong>Prerequisite:</strong> you cannot take Phase 2 alone without first completing Phase 1.
                           </span>
-                          <span className="text-[11px] font-bold text-amber-200">
+                          <span className="text-[11px] font-bold text-amber-800">
                             Fee: {phase2Display.fullLabel} (after Phase 1)
                           </span>
                         </div>
                       </div>
 
-                      <div className="p-3 rounded-xl bg-[#00a859]/20 border border-[#00e074]/30 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                      <div className="p-3 rounded-xl bg-[#00a859]/10 border border-emerald-200 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                         <div>
-                          <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-300">Phase 1 Fee Due Now</span>
-                          <div className="text-base font-extrabold text-white">
-                            ${phase1Fee} USD <span className="text-xs font-normal text-emerald-200">({phase1Display.approxRwf})</span>
+                          <span className="text-[10px] font-bold uppercase tracking-wider text-[#00652c]">Phase 1 Fee Due Now</span>
+                          <div className="text-base font-extrabold text-gray-900">
+                            ${phase1Fee} USD <span className="text-xs font-normal text-gray-500">({phase1Display.approxRwf})</span>
                           </div>
                         </div>
-                        <span className="text-[11px] text-emerald-200 bg-white/10 px-2.5 py-1 rounded-lg self-start sm:self-auto">
+                        <span className="text-[11px] text-gray-600 bg-white border border-gray-200 px-2.5 py-1 rounded-lg self-start sm:self-auto">
                           Live Rate: 1 USD ≈ {Math.round(exchangeRate.rate)} RWF
                         </span>
                       </div>
 
-                      <label className="flex items-start gap-2.5 cursor-pointer pt-1 border-t border-white/10">
+                      <label className="flex items-start gap-2.5 cursor-pointer pt-1 border-t border-emerald-200">
                         <input
                           type="checkbox"
                           required
                           checked={termsAccepted}
                           onChange={(e) => setTermsAccepted(e.target.checked)}
-                          className="mt-1 w-4 h-4 rounded border-gray-400 text-[#00a859] focus:ring-[#00e074] cursor-pointer"
+                          className="mt-1 w-4 h-4 rounded border-gray-300 text-[#00a859] focus:ring-[#00a859] cursor-pointer"
                         />
-                        <span className="text-xs text-gray-200 select-none">
+                        <span className="text-xs text-gray-700 select-none">
                           I acknowledge that this registration is for <strong>Phase 1 (Self-Paced Online)</strong> at <strong>${phase1Fee} USD ({phase1Display.approxRwf})</strong>, which awards an official Certificate of Completion. I understand that <strong>Phase 2 (hands-on practice in Rwanda)</strong> is optional, paid separately (${phase2Fee} USD), and cannot be taken without first completing Phase 1. *
                         </span>
                       </label>
                     </div>
 
                     {/* ── Official Payment Coordinates Box ── */}
-                    <div className="p-4 sm:p-5 rounded-2xl bg-gradient-to-br from-[#022415] to-[#01140b] border border-[#00e074]/40 shadow-lg space-y-3.5">
+                    <div className="p-4 sm:p-5 rounded-2xl bg-gray-50 border border-gray-200 shadow-sm space-y-3.5">
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2">
-                          <span className="w-2.5 h-2.5 rounded-full bg-[#00e074] shadow-[0_0_8px_#00e074]" />
-                          <span className="text-xs font-bold uppercase tracking-wider text-emerald-300">
+                          <span className="w-2.5 h-2.5 rounded-full bg-[#00a859]" />
+                          <span className="text-xs font-bold uppercase tracking-wider text-[#00652c]">
                             Where to Pay ({phase1Display.fullLabel})
                           </span>
                         </div>
-                        <span className="text-[10px] px-2 py-0.5 rounded-full bg-[#00e074]/15 text-[#00e074] font-semibold border border-[#00e074]/30">
+                        <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-100 text-[#00652c] font-semibold border border-emerald-200">
                           Official Accounts
                         </span>
                       </div>
 
-                      <p className="text-[11px] text-gray-300 leading-relaxed">
+                      <p className="text-[11px] text-gray-600 leading-relaxed">
                         {paymentDetails.instructions || 'Please transfer the registration fee via Mobile Money (MoMo) or Bank Transfer below, then attach your transaction receipt/screenshot:'}
                       </p>
 
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                         {/* Option 1: Mobile Money (MoMo) */}
-                        <div className="p-3.5 rounded-xl bg-white/5 border border-emerald-400/30 hover:border-[#00e074] transition-all space-y-1.5">
+                        <div className="p-3.5 rounded-xl bg-white border border-emerald-200 hover:border-[#00a859] transition-all space-y-1.5">
                           <div className="flex items-center justify-between">
-                            <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-400">
+                            <span className="text-[10px] font-bold uppercase tracking-wider text-[#00652c]">
                               Option 1: Mobile Money (MoMo)
                             </span>
                             <span className="text-xs">📱</span>
                           </div>
                           <div className="flex items-center justify-between">
                             <div>
-                              <div className="text-xs text-gray-400">Phone Number:</div>
+                              <div className="text-xs text-gray-500">Phone Number:</div>
                               <a
                                 href={`tel:${paymentDetails.momoNumber.replace(/\s+/g, '')}`}
-                                className="font-mono text-base font-extrabold text-[#00e074] hover:underline"
+                                className="font-mono text-base font-extrabold text-[#00652c] hover:underline"
                               >
                                 {paymentDetails.momoNumber}
                               </a>
@@ -580,51 +580,51 @@ export const TrainingProgramPage: React.FC = () => {
                             <button
                               type="button"
                               onClick={() => handleCopy(paymentDetails.momoNumber, 'MoMo Number')}
-                              className="p-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-white transition-colors"
+                              className="p-1.5 rounded-lg bg-gray-100 hover:bg-gray-200 text-gray-700 transition-colors"
                               title="Copy MoMo Number"
                             >
                               {copiedField === 'MoMo Number' ? (
-                                <Check className="w-3.5 h-3.5 text-[#00e074]" />
+                                <Check className="w-3.5 h-3.5 text-[#00a859]" />
                               ) : (
                                 <Copy className="w-3.5 h-3.5" />
                               )}
                             </button>
                           </div>
-                          <div className="text-[11px] text-gray-300">
-                            Recipient: <strong className="text-white">{paymentDetails.momoName}</strong>
+                          <div className="text-[11px] text-gray-600">
+                            Recipient: <strong className="text-gray-900">{paymentDetails.momoName}</strong>
                           </div>
                         </div>
 
                         {/* Option 2: Bank Transfer (Equity Bank) */}
-                        <div className="p-3.5 rounded-xl bg-white/5 border border-blue-400/30 hover:border-blue-300 transition-all space-y-1.5">
+                        <div className="p-3.5 rounded-xl bg-white border border-blue-200 hover:border-blue-400 transition-all space-y-1.5">
                           <div className="flex items-center justify-between">
-                            <span className="text-[10px] font-bold uppercase tracking-wider text-blue-300">
+                            <span className="text-[10px] font-bold uppercase tracking-wider text-blue-700">
                               Option 2: {paymentDetails.bankName}
                             </span>
                             <span className="text-xs">🏦</span>
                           </div>
                           <div className="flex items-center justify-between">
                             <div>
-                              <div className="text-xs text-gray-400">Account Number:</div>
-                              <span className="font-mono text-base font-extrabold text-blue-200">
+                              <div className="text-xs text-gray-500">Account Number:</div>
+                              <span className="font-mono text-base font-extrabold text-blue-800">
                                 {paymentDetails.bankAccountNumber}
                               </span>
                             </div>
                             <button
                               type="button"
                               onClick={() => handleCopy(paymentDetails.bankAccountNumber, 'Account Number')}
-                              className="p-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-white transition-colors"
+                              className="p-1.5 rounded-lg bg-gray-100 hover:bg-gray-200 text-gray-700 transition-colors"
                               title="Copy Account Number"
                             >
                               {copiedField === 'Account Number' ? (
-                                <Check className="w-3.5 h-3.5 text-[#00e074]" />
+                                <Check className="w-3.5 h-3.5 text-[#00a859]" />
                               ) : (
                                 <Copy className="w-3.5 h-3.5" />
                               )}
                             </button>
                           </div>
-                          <div className="text-[11px] text-gray-300">
-                            Account Name: <strong className="text-white">{paymentDetails.bankAccountName}</strong>
+                          <div className="text-[11px] text-gray-600">
+                            Account Name: <strong className="text-gray-900">{paymentDetails.bankAccountName}</strong>
                           </div>
                         </div>
                       </div>
@@ -632,7 +632,7 @@ export const TrainingProgramPage: React.FC = () => {
 
                     {/* ── Proof of Payment Upload ── */}
                     <div>
-                      <label className="text-xs font-semibold text-gray-300 block mb-1">
+                      <label className="text-xs font-semibold text-gray-700 block mb-1">
                         Proof of Payment ({phase1Display.fullLabel}) *
                       </label>
                       <div className="relative">
@@ -645,13 +645,13 @@ export const TrainingProgramPage: React.FC = () => {
                               setPaymentFile(e.target.files[0]);
                             }
                           }}
-                          className="block w-full text-xs text-gray-300 file:mr-3 file:py-2.5 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-[#00a859] file:text-white hover:file:bg-[#00c968] file:cursor-pointer cursor-pointer border border-white/20 rounded-xl bg-white/10 p-2 focus:outline-none focus:ring-2 focus:ring-[#00e074]"
+                          className="block w-full text-xs text-gray-600 file:mr-3 file:py-2.5 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-[#00a859] file:text-white hover:file:bg-[#00c968] file:cursor-pointer cursor-pointer border border-gray-200 rounded-xl bg-gray-50 p-2 focus:outline-none focus:ring-2 focus:ring-[#00a859]"
                         />
                       </div>
-                      <div className="flex items-center justify-between text-[11px] text-gray-400 mt-1.5">
+                      <div className="flex items-center justify-between text-[11px] text-gray-500 mt-1.5">
                         <span>Accepted formats: PDF, PNG, JPG, WEBP (Max 15MB)</span>
                         {paymentFile && (
-                          <span className="text-emerald-400 font-semibold truncate max-w-[220px]">
+                          <span className="text-[#00652c] font-semibold truncate max-w-[220px]">
                             ✓ {paymentFile.name} ({(paymentFile.size / 1024 / 1024).toFixed(2)} MB)
                           </span>
                         )}
