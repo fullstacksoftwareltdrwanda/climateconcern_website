@@ -3,7 +3,7 @@ import { ArrowRight, CheckCircle2, BookOpen, GraduationCap, ShieldCheck, Chevron
 import { AnimateIn } from '../components/ui/AnimateIn';
 import { trainingProgram as staticTrainingProgram, type StaticTrainingCourse, defaultPaymentDetails, type PaymentDetails } from '../data/bossContent';
 import { api } from '../lib/api';
-import { useExchangeRate, formatPriceDisplay, formatRwf, convertUsdToRwf } from '../lib/currency';
+import { useExchangeRate, formatPriceDisplay } from '../lib/currency';
 
 export const TrainingProgramPage: React.FC = () => {
   const exchangeRate = useExchangeRate();

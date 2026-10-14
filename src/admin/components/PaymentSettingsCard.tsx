@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { CreditCard, Smartphone, Building, Save, CheckCircle2, Copy, Check } from 'lucide-react';
+import { Save, CheckCircle2, Copy, Check } from 'lucide-react';
 import { api } from '../../lib/api';
 import { useToast } from '../Toast';
 import { defaultPaymentDetails, type PaymentDetails } from '../../data/bossContent';
